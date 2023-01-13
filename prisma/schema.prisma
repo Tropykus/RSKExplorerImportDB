@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model addresses {
+  id   Int  @id(map: "addresses_pk") @default(autoincrement())
+  data Json
+}
+
+model balances {
+  id   Int  @id(map: "balances_pk") @default(autoincrement())
+  data Json
+}
+
+model balanceslog {
+  id   Int  @id(map: "balanceslog_pk") @default(autoincrement())
+  data Json
+}
+
+model blocks {
+  id   Int  @id(map: "blocks_pk") @default(autoincrement())
+  data Json
+}
+
+model blockssummary {
+  id   Int  @id(map: "blockssummary_pk") @default(autoincrement())
+  data Json
+}
+
+model blocktraces {
+  id   Int  @id(map: "blocktraces_pk") @default(autoincrement())
+  data Json
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model config {
+  id   Int  @id(map: "config_pk") @default(autoincrement())
+  data Json
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model contractsverifications {
+  id   Int  @id(map: "contractsverifications_pk") @default(autoincrement())
+  data Json
+
+  @@ignore
+}
+
+model events {
+  id   Int  @id(map: "events_pk") @default(autoincrement())
+  data Json
+}
+
+model internaltransactions {
+  id   Int  @id(map: "internaltransactions_pk") @default(autoincrement())
+  data Json
+}
+
+model statscollection {
+  id   Int  @id(map: "statscollection_pk") @default(autoincrement())
+  data Json
+}
+
+model status {
+  id   Int  @id(map: "status_pk") @default(autoincrement())
+  data Json
+}
+
+model tokensaddresses {
+  id   Int  @id(map: "tokensaddresses_pk") @default(autoincrement())
+  data Json
+}
+
+model transactions {
+  id   Int  @id(map: "transactions_pk") @default(autoincrement())
+  data Json
+}
+
+model transactionspending {
+  id   Int  @id(map: "transactionspending_pk") @default(autoincrement())
+  data Json
+}
+
+model txpool {
+  id   Int  @id(map: "txpool_pk") @default(autoincrement())
+  data Json
+}
+
+model verificationresults {
+  id   Int  @id(map: "verificationresults_pk") @default(autoincrement())
+  data Json
+}
