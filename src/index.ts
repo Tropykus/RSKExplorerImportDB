@@ -1,40 +1,28 @@
 import { MongoClient } from 'mongodb'
+import { createMigration, processCollection } from './processCollection'
+import * as dotenv from 'dotenv'
+
+dotenv.config();
 
 async function startMigration() {
   try {
-    const url = "mongodb://rsk:gEbiq5KegHPzlRnkwr8O7gvFxjOoKBSjrxWXSmQuH2u@13.59.126.150:27017/?authMechanism=DEFAULT";
-    const dbName = 'blockDB_1_1_5';
+    // Connecting to MongoDB
+    const url = process.env.OLD_DATABASE_URL;
+    const dbName = process.env.OLD_DATABASE_NAME;
     const client = new MongoClient(url);
     const db = client.db(dbName);
-    await listCollections(db);
-    // await listCollection(db, 'status')
-    // await listCollection(db, 'config')
-  } catch (err) {
-    return Promise.reject(err);
-  }
-}
-
-async function listCollections(db) {
-  let collections = await db.listCollections().toArray();
-  console.log("Collections:");
-  collections.forEach(async collection => await countCollection(db, collection.name));
-};
-
-async function countCollection(db, collection) {
-  const response = await db.collection(collection).indexes();
-  console.log(`Count of ${collection}: `, response)
-}
-
-async function listCollection(db, collection) {
-  let cursor = await db.collection(collection).find({});
-  cursor.forEach(
-    (doc) => {
-      console.log(doc);
-    },
-    (err) => {
-      console.log('>>> ERROR ERROR ERROR ERROR ERROR <<<', err)
+    // Fetch collection list
+    let collections = [{ name: 'contractsVerifications' }, { name: 'config' }, { name: 'status' }, { name: 'internalTransactions' }, { name: 'events' }, { name: 'transactions' }, { name: 'balances' }, { name: 'txPool' }, { name: 'blockTraces' }, { name: 'statsCollection' }, { name: 'blocksSummary' }, { name: 'blocks' }, { name: 'balancesLog' }, { name: 'addresses' }, { name: 'tokensAddresses' }];
+    // let collections = await db.listCollections().toArray();
+    await createMigration();
+    for (const collection of collections) {
+      await processCollection(db, collection.name)
     }
-  );
+    // Replacing this line
+    // await collections.forEach(async (collection) => { await processCollection(db, collection.name) });
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 startMigration();

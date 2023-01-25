@@ -8,92 +8,246 @@ datasource db {
 }
 
 model addresses {
-  id   Int  @id(map: "addresses_pk") @default(autoincrement())
-  data Json
+  id                    Int      @id(map: "addresses_pk") @default(autoincrement())
+  data                  Json     @db.Json
+  old_id                String?  @unique(map: "addresses_un") @db.VarChar
+  createdbytx_timestamp Decimal? @db.Decimal
+  address               String?  @unique(map: "addresses_address_idx") @db.VarChar
+  balance               String?  @db.VarChar
+  type                  String?  @db.VarChar
+  name                  String?  @db.VarChar
+
+  @@index([balance])
+  @@index([createdbytx_timestamp(sort: Desc)])
+  @@index([name])
+  @@index([type])
 }
 
 model balances {
-  id   Int  @id(map: "balances_pk") @default(autoincrement())
-  data Json
+  id          Int      @id(map: "balances_pk") @default(autoincrement())
+  data        Json     @db.Json
+  address     String?  @db.VarChar
+  blocknumber Decimal? @db.Decimal
+  blockhash   String?  @db.VarChar
+  timestamp   Decimal? @db.Decimal
+  old_id      String?  @unique(map: "balances_un") @db.VarChar
+
+  @@unique([address, blocknumber], map: "balances_address_blocknumber_idx")
+  @@index([address])
+  @@index([blockhash])
+  @@index([blocknumber(sort: Desc)])
+  @@index([timestamp(sort: Desc)])
 }
 
 model balanceslog {
-  id   Int  @id(map: "balanceslog_pk") @default(autoincrement())
-  data Json
+  id        Int     @id(map: "balanceslog_pk") @default(autoincrement())
+  data      Json    @db.Json
+  old_id    String? @unique(map: "balanceslog_un") @db.VarChar
+  blockhash String? @unique(map: "balanceslog_blockhash_idx") @db.VarChar
 }
 
 model blocks {
-  id   Int  @id(map: "blocks_pk") @default(autoincrement())
-  data Json
+  id        Int      @id(map: "blocks_pk") @default(autoincrement())
+  data      Json     @db.Json
+  old_id    String?  @unique(map: "blocks_un") @db.VarChar
+  number    Decimal? @unique(map: "blocks_number_idx", sort: Desc) @db.Decimal
+  hash      String?  @unique(map: "blocks_hash_idx") @db.VarChar
+  size      Decimal? @db.Decimal
+  received  Decimal? @map("_received") @db.Decimal
+  timestamp Decimal? @db.Decimal
+  miner     String?  @db.VarChar
+
+  @@index([received(sort: Desc)])
+  @@index([miner])
+  @@index([size])
+  @@index([timestamp(sort: Desc)])
 }
 
 model blockssummary {
-  id   Int  @id(map: "blockssummary_pk") @default(autoincrement())
-  data Json
+  id        Int      @id(map: "blockssummary_pk") @default(autoincrement())
+  data      Json     @db.Json
+  old_id    String?  @unique(map: "blockssummary_un") @db.VarChar
+  hash      String?  @unique(map: "blockssummary_hash_idx") @db.VarChar
+  number    Decimal? @db.Decimal
+  timestamp Decimal? @db.Decimal
+
+  @@index([number(sort: Desc)])
+  @@index([timestamp(sort: Desc)])
 }
 
 model blocktraces {
-  id   Int  @id(map: "blocktraces_pk") @default(autoincrement())
-  data Json
+  id     Int     @id(map: "blocktraces_pk") @default(autoincrement())
+  data   Json    @db.Json
+  old_id String? @unique(map: "blocktraces_un") @db.VarChar
+  hash   String? @unique(map: "blocktraces_hash_idx") @db.VarChar
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
 model config {
-  id   Int  @id(map: "config_pk") @default(autoincrement())
-  data Json
-
-  @@ignore
+  id     Int     @id(map: "config_pk") @default(autoincrement())
+  data   Json    @db.Json
+  old_id String? @unique(map: "config_un") @db.VarChar
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
 model contractsverifications {
-  id   Int  @id(map: "contractsverifications_pk") @default(autoincrement())
-  data Json
+  id      Int     @id(map: "contractsverifications_pk") @default(autoincrement())
+  data    Json    @db.Json
+  old_id  String? @unique(map: "contractsverifications_un") @db.VarChar
+  address String? @db.VarChar
 
-  @@ignore
+  @@index([address])
 }
 
 model events {
-  id   Int  @id(map: "events_pk") @default(autoincrement())
-  data Json
+  id              Int      @id(map: "events_pk") @default(autoincrement())
+  data            Json     @db.Json
+  old_id          String?  @unique(map: "events_un") @db.VarChar
+  eventid         String?  @unique(map: "events_eventid_idx", sort: Desc) @db.VarChar
+  timestamp       Decimal? @db.Decimal
+  blocknumber     Decimal? @db.Decimal
+  transactionhash String?  @db.VarChar
+  signature       String?  @db.VarChar
+  address         String?  @db.VarChar
+  event           String?  @db.VarChar
+  blockhash       String?  @db.VarChar
+
+  @@index([address])
+  @@index([blockhash])
+  @@index([blocknumber])
+  @@index([event])
+  @@index([signature])
+  @@index([timestamp])
+  @@index([transactionhash])
 }
 
 model internaltransactions {
-  id   Int  @id(map: "internaltransactions_pk") @default(autoincrement())
-  data Json
+  id              Int      @id(map: "internaltransactions_pk") @default(autoincrement())
+  data            Json     @db.Json
+  old_id          String?  @unique(map: "internaltransactions_un") @db.VarChar
+  blockhash       String?  @db.VarChar
+  blocknumber     Decimal? @db.Decimal
+  transactionhash String?  @db.VarChar
+  action_from     String?  @db.VarChar
+  action_to       String?  @db.VarChar
+  type            String?  @db.VarChar
+  internaltxid    String?  @unique(map: "internaltransactions_internaltxid_idx", sort: Desc) @db.VarChar
+
+  @@index([action_from])
+  @@index([action_to])
+  @@index([blockhash])
+  @@index([blocknumber(sort: Desc)])
+  @@index([transactionhash])
+  @@index([type])
+}
+
+model migration {
+  id               Int                @id(map: "migration_pk") @default(autoincrement())
+  status           String?            @default("started") @db.VarChar
+  migration_detail migration_detail[]
+}
+
+model migration_detail {
+  id              Int               @id(map: "migration_detail_pk") @default(autoincrement())
+  status          String?           @default("started") @db.VarChar
+  migration_id    Int?
+  total           Int?
+  initial         Int?
+  processed       Int?
+  collection      String?           @db.VarChar
+  migration       migration?        @relation(fields: [migration_id], references: [id], onDelete: Cascade, map: "migration_detail_fk")
+  migration_error migration_error[]
+}
+
+model migration_error {
+  id                  Int              @id(map: "migration_error_pk") @default(autoincrement())
+  data                Json?            @db.Json
+  migration_detail_id Int
+  error               String?          @db.VarChar
+  migration_detail    migration_detail @relation(fields: [migration_detail_id], references: [id], onDelete: Cascade, map: "migration_error_fk")
 }
 
 model statscollection {
-  id   Int  @id(map: "statscollection_pk") @default(autoincrement())
-  data Json
+  id          Int      @id(map: "statscollection_pk") @default(autoincrement())
+  data        Json     @db.Json
+  old_id      String?  @unique(map: "statscollection_un") @db.VarChar
+  timestamp   Decimal? @db.Decimal
+  blocknumber Decimal? @db.Decimal
+
+  @@index([blocknumber(sort: Desc)])
+  @@index([timestamp])
 }
 
 model status {
-  id   Int  @id(map: "status_pk") @default(autoincrement())
-  data Json
+  id        Int      @id(map: "status_pk") @default(autoincrement())
+  data      Json     @db.Json
+  old_id    String?  @unique(map: "status_un") @db.VarChar
+  timestamp Decimal? @db.Decimal
+
+  @@index([timestamp(sort: Desc)])
 }
 
 model tokensaddresses {
-  id   Int  @id(map: "tokensaddresses_pk") @default(autoincrement())
-  data Json
+  id       Int     @id(map: "tokensaddresses_pk") @default(autoincrement())
+  data     Json    @db.Json
+  old_id   String? @unique(map: "tokensaddresses_un") @db.VarChar
+  contract String? @db.VarChar
+  address  String? @db.VarChar
+
+  @@unique([contract, address], map: "tokensaddresses_contract_address_idx")
+  @@index([address])
+  @@index([contract])
 }
 
 model transactions {
-  id   Int  @id(map: "transactions_pk") @default(autoincrement())
-  data Json
+  id               Int      @id(map: "transactions_pk") @default(autoincrement())
+  data             Json     @db.Json
+  old_id           String?  @unique(map: "transactions_un") @db.VarChar
+  txid             String?  @unique(map: "transactions_txid_idx", sort: Desc) @db.VarChar
+  hash             String?  @unique(map: "transactions_hash_idx") @db.VarChar
+  blocknumber      String?  @db.VarChar
+  transactionindex String?  @db.VarChar
+  timestamp        Decimal? @db.Decimal
+  from             String?  @db.VarChar
+  to               String?  @db.VarChar
+  txtype           String?  @db.VarChar
+  blockhash        String?  @db.VarChar
+
+  @@index([blockhash])
+  @@index([blocknumber(sort: Desc)])
+  @@index([from])
+  @@index([timestamp(sort: Desc)])
+  @@index([to])
+  @@index([transactionindex(sort: Desc)])
+  @@index([txtype])
 }
 
 model transactionspending {
-  id   Int  @id(map: "transactionspending_pk") @default(autoincrement())
-  data Json
+  id     Int     @id(map: "transactionspending_pk") @default(autoincrement())
+  data   Json    @db.Json
+  old_id String? @unique(map: "transactionspending_un") @db.VarChar
+  hash   String? @unique(map: "transactionspending_hash_idx") @db.VarChar
+  from   String? @db.VarChar
+  to     String? @db.VarChar
+
+  @@index([from])
+  @@index([to])
 }
 
 model txpool {
-  id   Int  @id(map: "txpool_pk") @default(autoincrement())
-  data Json
+  id        Int      @id(map: "txpool_pk") @default(autoincrement())
+  data      Json     @db.Json
+  old_id    String?  @unique(map: "txpool_un") @db.VarChar
+  timestamp Decimal? @db.Decimal
+
+  @@index([timestamp(sort: Desc)])
 }
 
 model verificationresults {
-  id   Int  @id(map: "verificationresults_pk") @default(autoincrement())
-  data Json
+  id      Int      @id(map: "verificationresults_pk") @default(autoincrement())
+  data    Json     @db.Json
+  old_id  String?  @unique(map: "verificationresults_un") @db.VarChar
+  address String?  @db.VarChar
+  match   Boolean?
+
+  @@index([address])
+  @@index([match])
 }
