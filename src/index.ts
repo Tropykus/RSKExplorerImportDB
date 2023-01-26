@@ -12,7 +12,7 @@ async function startMigration() {
     const client = new MongoClient(url);
     const db = client.db(dbName);
     // Fetch collection list
-    let collections = [{ name: 'contractsVerifications' }, { name: 'config' }, { name: 'status' }, { name: 'internalTransactions' }, { name: 'events' }, { name: 'transactions' }, { name: 'balances' }, { name: 'txPool' }, { name: 'blockTraces' }, { name: 'statsCollection' }, { name: 'blocksSummary' }, { name: 'blocks' }, { name: 'balancesLog' }, { name: 'addresses' }, { name: 'tokensAddresses' }];
+    let collections = [{ name: 'config' }, { name: 'status' }, { name: 'verificationResults' }, { name: 'contractsVerifications' }, { name: 'transactionsPending' }, { name: 'tokensAddresses' }, { name: 'addresses' }, { name: 'balancesLog' }, { name: 'blocksSummary' }, { name: 'blocks' }, { name: 'balances' }, { name: 'txPool' }, { name: 'statsCollection' }, { name: 'blockTraces' }, { name: 'transactions' }, { name: 'events' }, { name: 'internalTransactions' }];
     // let collections = await db.listCollections().toArray();
     await createMigration();
     for (const collection of collections) {
