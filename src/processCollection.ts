@@ -41,7 +41,7 @@ export async function processCollection(db, collection) {
   else {
     // Initialize counter of processed records
     let count = 0;
-    let cursor = await db.collection(collection).find();
+    let cursor = await db.collection(collection).find().batchSize(100);
     // Check storeFunction defined in processingDocument for collection
     let storeFunction = processDocument[collection];
     if (storeFunction === undefined)

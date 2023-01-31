@@ -61,7 +61,6 @@ async function verificationResults(document) {
   });
 }
 
-// 489 Proccessed
 async function contractsVerifications(document) {
   let data = {
     data: document,
