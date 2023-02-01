@@ -1,4 +1,4 @@
-import { Collection, MongoClient } from 'mongodb'
+import { MongoClient } from 'mongodb'
 import { createMigration, processCollection } from './processCollection'
 import * as dotenv from 'dotenv'
 
@@ -21,6 +21,11 @@ async function startMigration() {
       collections = [{ name: targetCollection }];
     console.log('Collections to process:', collections);
     await createMigration();
+    // Migrate multiple collections in parallel
+    // await Promise.all(collections.map(async (collection) => {
+    //   await processCollection(db, collection.name);
+    // }));
+    // Migrate collections in secuence
     for (const collection of collections) {
       await processCollection(db, collection.name)
     }
