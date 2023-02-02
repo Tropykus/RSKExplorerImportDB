@@ -41,55 +41,61 @@ export async function processCollection(db, collection) {
   else {
     // Initialize counter of processed records
     let count = 0;
-    let cursor = await db.collection(collection).find().batchSize(100);
-    // Check storeFunction defined in processingDocument for collection
-    let storeFunction = processDocument[collection];
-    if (storeFunction === undefined)
-      throw new Error(`No store function defined for collection ${collection}`);
-    // Processing documents
-    for await (const document of cursor) {
-      // Loop for retrying process
-      for (let i = 1; i <= 3; i++) {
-        try {
-          await storeFunction(document);
-          count++;
-          await prisma.migration_detail.update({
-            where: { id: migration_detail_record.id },
-            data: { processed: count }
-          });
-          process.stdout.write(`\rProcessed documents: ${count}`);
-          i = 4; // Exit from loop
-        } catch (error) {
-          if (i == 3) {
-            try {
-              await prisma.migration_error.create({
-                data: {
-                  migration_detail_id: migration_detail_record.id,
-                  data: document,
-                  error: error.toString()
-                }
-              });
-            } catch {
-              console.log('\n\n!!! ERROR SAVING ERROR!!!\n')
+    const nPerPage = 15;
+    const maxPages = Math.ceil(total / nPerPage);
+
+    for (let pageNumber = 1; pageNumber <= maxPages; pageNumber++) {
+      console.log(`\nPage ${pageNumber} of ${maxPages}`);
+      let cursor = await db.collection(collection).find().sort({ _id: 1 }).skip(pageNumber > 0 ? ((pageNumber - 1) * nPerPage) : 0).limit(nPerPage).toArray();
+      // Check storeFunction defined in processingDocument for collection
+      let storeFunction = processDocument[collection];
+      if (storeFunction === undefined)
+        throw new Error(`No store function defined for collection ${collection}`);
+      // Processing documents
+      await Promise.all(cursor.map(async (document) => {
+        // Loop for retrying process
+        for (let i = 1; i <= 3; i++) {
+          try {
+            await storeFunction(document);
+            count++;
+            await prisma.migration_detail.update({
+              where: { id: migration_detail_record.id },
+              data: { processed: count }
+            });
+            process.stdout.write(`\rProcessed documents: ${count}`);
+            i = 4; // Exit from loop
+          } catch (error) {
+            if (i == 3) {
+              try {
+                await prisma.migration_error.create({
+                  data: {
+                    migration_detail_id: migration_detail_record.id,
+                    data: document,
+                    error: error.toString()
+                  }
+                });
+              } catch {
+                console.log('\n\n!!! ERROR SAVING ERROR!!!\n')
+              }
+            } else {
+              console.log('\n\n!!! ERROR !!!\n', `--- Try: ${i} ---`, error)
             }
-          } else {
-            console.log('\n\n!!! ERROR !!!\n', `--- Try: ${i} ---`, error)
           }
         }
-      }
+      }));
     }
     if (count == total) {
       await prisma.migration_detail.update({
         where: { id: migration_detail_record.id },
         data: { status: 'done' }
       });
-      console.log(`\nCollection ${collection} is proccessed successfully`);
+      console.log(`\nCollection ${collection} was proccessed successfully`);
     } else {
       await prisma.migration_detail.update({
         where: { id: migration_detail_record.id },
         data: { status: 'error' }
       });
-      console.log(`\nCollection ${collection} is proccessed with errors`);
+      console.log(`\nCollection ${collection} was proccessed with errors`);
     }
   }
 }

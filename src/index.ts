@@ -19,7 +19,7 @@ async function startMigration() {
       collections = await db.listCollections().toArray();
     else
       collections = [{ name: targetCollection }];
-    console.log('Collections to process:', collections);
+    console.log('Collections to process:', collections.map((collection) => { return collection.name }));
     await createMigration();
     // Migrate multiple collections in parallel
     // await Promise.all(collections.map(async (collection) => {
