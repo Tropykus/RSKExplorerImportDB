@@ -19,6 +19,7 @@ async function startMigration() {
       collections = await db.listCollections().toArray();
     else
       collections = [{ name: targetCollection }];
+    collections = [{ name: 'tokensAddresses' }, { name: 'balances' }, { name: 'blocks' }];
     console.log('Collections to process:', collections.map((collection) => { return collection.name }));
     await createMigration();
     // Migrate multiple collections in parallel
