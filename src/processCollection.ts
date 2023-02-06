@@ -4,6 +4,7 @@ import { processDocument } from './processingFunctions'
 const prisma = new PrismaClient();
 
 let migration_id;
+const batchSize = parseInt(process.env.BATCH_SIZE);
 
 export async function createMigration() {
   let migration_record = await prisma.migration.create({ data: {} });
@@ -41,12 +42,11 @@ export async function processCollection(db, collection) {
   else {
     // Initialize counter of processed records
     let count = 0;
-    const nPerPage = 15;
-    const maxPages = Math.ceil(total / nPerPage);
+    const maxPages = Math.ceil(total / batchSize);
 
     for (let pageNumber = 1; pageNumber <= maxPages; pageNumber++) {
       console.log(`\nPage ${pageNumber} of ${maxPages}`);
-      let cursor = await db.collection(collection).find().sort({ _id: 1 }).skip(pageNumber > 0 ? ((pageNumber - 1) * nPerPage) : 0).limit(nPerPage).toArray();
+      let cursor = await db.collection(collection).find().sort({ _id: 1 }).skip(pageNumber > 0 ? ((pageNumber - 1) * batchSize) : 0).limit(batchSize).toArray();
       // Check storeFunction defined in processingDocument for collection
       let storeFunction = processDocument[collection];
       if (storeFunction === undefined)
@@ -74,6 +74,11 @@ export async function processCollection(db, collection) {
                     error: error.toString()
                   }
                 });
+                await prisma.migration_detail.update({
+                  where: { id: migration_detail_record.id },
+                  data: { status: 'error' }
+                });
+                pageNumber = maxPages;
               } catch {
                 console.log('\n\n!!! ERROR SAVING ERROR!!!\n')
               }

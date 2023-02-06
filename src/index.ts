@@ -15,11 +15,18 @@ async function startMigration() {
     const targetCollection = process.argv[2];
     let collections;
     // Fetch collection list
-    if (targetCollection == undefined)
-      collections = await db.listCollections().toArray();
+    if (targetCollection == undefined) {
+      if ((process.env.FIXED_COLLECTIONS == undefined) || (process.env.FIXED_COLLECTIONS == "")) {
+        console.log(process.env.FIXED_COLLECTIONS)
+        collections = await db.listCollections().toArray();
+      } else {
+        collections = process.env.FIXED_COLLECTIONS.split(',').map((collection) => {
+          return { name: collection }
+        });
+      }
+    }
     else
       collections = [{ name: targetCollection }];
-    collections = [{ name: 'tokensAddresses' }, { name: 'balances' }, { name: 'blocks' }];
     console.log('Collections to process:', collections.map((collection) => { return collection.name }));
     await createMigration();
     // Migrate multiple collections in parallel
