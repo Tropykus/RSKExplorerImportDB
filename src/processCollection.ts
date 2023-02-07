@@ -58,10 +58,10 @@ export async function processCollection(db, collection) {
           try {
             await storeFunction(document);
             count++;
-            await prisma.migration_detail.update({
-              where: { id: migration_detail_record.id },
-              data: { processed: count }
-            });
+            // await prisma.migration_detail.update({
+            //   where: { id: migration_detail_record.id },
+            //   data: { processed: count }
+            // });
             process.stdout.write(`\rProcessed documents: ${count}`);
             i = 4; // Exit from loop
           } catch (error) {
