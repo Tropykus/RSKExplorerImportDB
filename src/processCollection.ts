@@ -90,9 +90,9 @@ export async function processCollection(db, collection) {
           }
         }
       }));
-      console.log(`Processed documents: ${count}`);
       current_write = (Date.now() - initial_time) / 1000;
       console.log(`Write time: ${current_write}`);
+      console.log(`Processed documents: ${count}`);
       if ((min_read === undefined) || (min_read > current_read))
         min_read = current_read
       if ((max_read === undefined) || (max_read < current_read))
@@ -118,13 +118,13 @@ export async function processCollection(db, collection) {
         where: { id: migration_detail_record.id },
         data: { status: 'done' }
       });
-      console.log(`\nCollection ${collection} was proccessed successfully`);
+      console.log(`\nCollection ${collection} was processed successfully`);
     } else {
       await prisma.migration_detail.update({
         where: { id: migration_detail_record.id },
         data: { status: 'error' }
       });
-      console.log(`\nCollection ${collection} was proccessed with errors`);
+      console.log(`\nCollection ${collection} was processed with errors`);
     }
   }
 }
