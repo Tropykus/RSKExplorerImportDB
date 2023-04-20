@@ -20,14 +20,17 @@ export async function processCollection(db, collection) {
   const total = await db.collection(collection).count();
   console.log(`Total documents: ${total}`);
   // Get registered records in PostgreSQL database
-  const initial = (await prisma.$queryRawUnsafe(`SELECT COUNT(1) as counter from ${collection}`))[0].counter;
+  const initial = parseInt((await prisma.$queryRawUnsafe(`SELECT COUNT(1) as counter from ${collection}`))[0].counter);
   console.log(`Registered documents: ${initial}`);
+  let pageNumber = Math.trunc(initial / batchSize);
+  if (pageNumber < 1) pageNumber = 1;
+  let count = (pageNumber - 1) * batchSize;
   await prisma.migration_detail.update({
     where: { id: migration_detail_record.id },
     data: {
       total,
-      initial: parseInt(initial),
-      processed: 0,
+      initial,
+      processed: count,
       collection
     }
   });
@@ -40,28 +43,27 @@ export async function processCollection(db, collection) {
     });
   }
   else {
-    // Initialize counter of processed records
-    let count = 0;
+    let max_read, min_read, current_read, max_write, min_write, current_write;
     const maxPages = Math.ceil(total / batchSize);
 
-    for (let pageNumber = 1; pageNumber <= maxPages; pageNumber++) {
+    for (pageNumber; pageNumber <= maxPages; pageNumber++) {
+      let initial_time = Date.now();
       console.log(`\nPage ${pageNumber} of ${maxPages}`);
       let cursor = await db.collection(collection).find().sort({ _id: 1 }).skip(pageNumber > 0 ? ((pageNumber - 1) * batchSize) : 0).limit(batchSize).toArray();
       // Check storeFunction defined in processingDocument for collection
       let storeFunction = processDocument[collection];
       if (storeFunction === undefined)
         throw new Error(`No store function defined for collection ${collection}`);
+      current_read = ((Date.now() - initial_time)) / 1000;
+      console.log(`Read time: ${current_read}`);
       // Processing documents
+      initial_time = Date.now();
       await Promise.all(cursor.map(async (document) => {
         // Loop for retrying process
         for (let i = 1; i <= 3; i++) {
           try {
             await storeFunction(document);
             count++;
-            // await prisma.migration_detail.update({
-            //   where: { id: migration_detail_record.id },
-            //   data: { processed: count }
-            // });
             process.stdout.write(`\rProcessed documents: ${count}`);
             i = 4; // Exit from loop
           } catch (error) {
@@ -88,6 +90,27 @@ export async function processCollection(db, collection) {
           }
         }
       }));
+      current_write = (Date.now() - initial_time) / 1000;
+      console.log(`\nWrite time: ${current_write}`);
+      if ((min_read === undefined) || (min_read > current_read))
+        min_read = current_read
+      if ((max_read === undefined) || (max_read < current_read))
+        max_read = current_read
+      if ((min_write === undefined) || (min_write > current_write))
+        min_write = current_write
+      if ((max_write === undefined) || (max_write < current_write))
+        max_write = current_write
+      // Update migration detail
+      await prisma.migration_detail.update({
+        where: { id: migration_detail_record.id },
+        data: {
+          processed: count,
+          min_read,
+          max_read,
+          min_write,
+          max_write,
+        }
+      });
     }
     if (count == total) {
       await prisma.migration_detail.update({

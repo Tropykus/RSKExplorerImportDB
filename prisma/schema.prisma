@@ -153,6 +153,11 @@ model migration_detail {
   initial         Int?
   processed       Int?
   collection      String?           @db.VarChar
+  created_ts      DateTime?         @default(now()) @db.Timestamptz(6)
+  min_read        Decimal?          @db.Decimal
+  max_read        Decimal?          @db.Decimal
+  min_write       Decimal?          @db.Decimal
+  max_write       Decimal?          @db.Decimal
   migration       migration?        @relation(fields: [migration_id], references: [id], onDelete: Cascade, map: "migration_detail_fk")
   migration_error migration_error[]
 }
@@ -162,6 +167,7 @@ model migration_error {
   data                Json?            @db.Json
   migration_detail_id Int
   error               String?          @db.VarChar
+  created_ts          DateTime?        @default(now()) @db.Timestamptz(6)
   migration_detail    migration_detail @relation(fields: [migration_detail_id], references: [id], onDelete: Cascade, map: "migration_error_fk")
 }
 
