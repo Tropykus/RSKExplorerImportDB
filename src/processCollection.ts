@@ -64,7 +64,7 @@ export async function processCollection(db, collection) {
           try {
             await storeFunction(document);
             count++;
-            process.stdout.write(`\rProcessed documents: ${count}`);
+            // process.stdout.write(`\rProcessed documents: ${count}`);
             i = 4; // Exit from loop
           } catch (error) {
             if (i == 3) {
@@ -90,8 +90,9 @@ export async function processCollection(db, collection) {
           }
         }
       }));
+      console.log(`Processed documents: ${count}`);
       current_write = (Date.now() - initial_time) / 1000;
-      console.log(`\nWrite time: ${current_write}`);
+      console.log(`Write time: ${current_write}`);
       if ((min_read === undefined) || (min_read > current_read))
         min_read = current_read
       if ((max_read === undefined) || (max_read < current_read))
